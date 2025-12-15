@@ -1,6 +1,3 @@
----
-
-````md
 # Bookstore API Server (Spring Boot)
 
 **DB·API 설계를 기반으로 구현한 실전형 Bookstore API 서버**입니다.  
