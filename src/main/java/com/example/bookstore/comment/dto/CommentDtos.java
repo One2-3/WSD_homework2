@@ -1,8 +1,6 @@
 package com.example.bookstore.comment.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
 import java.time.Instant;
 
 public class CommentDtos {

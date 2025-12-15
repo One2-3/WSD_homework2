@@ -6,8 +6,6 @@ import com.example.bookstore.common.ItemsPayload;
 import com.example.bookstore.common.PageableUtil;
 import com.example.bookstore.order.dto.SellerOrderDtos.*;
 import com.example.bookstore.security.UserPrincipal;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
