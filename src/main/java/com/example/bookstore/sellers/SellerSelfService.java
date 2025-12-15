@@ -9,8 +9,6 @@ import com.example.bookstore.user.UserRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
-
 @Service
 public class SellerSelfService {
 
