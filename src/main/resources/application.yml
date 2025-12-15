@@ -1,7 +1,11 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
+  # .env 로컬 파일을 읽어오도록 설정 (레포에는 .env를 커밋하지 말 것)
+  config:
+    import: optional:file:.env[.properties]
+
   application:
     name: bookstore
 
@@ -10,9 +14,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/bookstore?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
-    username: root
-    password: root
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
@@ -32,9 +36,12 @@ logging:
     org.hibernate.SQL: debug
 
 app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
   jwt:
-    issuer: "bookstore"
-    access-secret: "CHANGE_ME_ACCESS_SECRET_32CHARS_MIN________"
-    access-exp-minutes: 15
-    refresh-pepper: "CHANGE_ME_REFRESH_PEPPER________"
-    refresh-exp-days: 14
+    issuer: ${JWT_ISSUER:bookstore}
+    access-secret: ${JWT_ACCESS_SECRET}
+    access-exp-minutes: ${JWT_ACCESS_EXP_MINUTES:15}
+    refresh-pepper: ${JWT_REFRESH_PEPPER}
+    refresh-exp-days: ${JWT_REFRESH_EXP_DAYS:14}

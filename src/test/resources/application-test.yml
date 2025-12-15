@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:bookstore_test;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+  flyway:
+    enabled: false
+
+app:
+  jwt:
+    issuer: "bookstore-test"
+    access-secret: "TEST_ACCESS_SECRET_32CHARS_MIN__________"
+    access-exp-minutes: 15
+    refresh-pepper: "TEST_REFRESH_PEPPER______________"
+    refresh-exp-days: 14
+
+  cors:
+    allowed-origins: "http://localhost:3000"

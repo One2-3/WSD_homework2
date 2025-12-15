@@ -3,7 +3,6 @@ package com.example.bookstore.common;
 import java.util.List;
 
 /**
- * 목록 payload는 items[]를 권장.
+ * 명세서: payload 안에는 items만 두고, meta는 최상위(meta)로 분리.
  */
-public record ItemsPayload<T>(List<T> items) {
-}
+public record ItemsPayload<T>(List<T> items) {}

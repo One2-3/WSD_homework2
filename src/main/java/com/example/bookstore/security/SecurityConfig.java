@@ -1,7 +1,8 @@
 package com.example.bookstore.security;
 
-import com.example.bookstore.common.ApiResponse;
 import com.example.bookstore.common.ErrorCode;
+import com.example.bookstore.common.ErrorResponse;
+import com.example.bookstore.common.RequestLoggingFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -32,12 +33,27 @@ public class SecurityConfig {
     }
 
     @Bean
+    public RateLimitFilter rateLimitFilter(ObjectMapper objectMapper) {
+        // IP 당 60 req / 1분 (인증 없는 요청에만 적용)
+        return new RateLimitFilter(objectMapper, 60, 60_000L);
+    }
+
+    @Bean
+    public RequestLoggingFilter requestLoggingFilter() {
+        return new RequestLoggingFilter();
+    }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter, ObjectMapper om)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   RequestLoggingFilter requestLoggingFilter,
+                                                   RateLimitFilter rateLimitFilter,
+                                                   JwtAuthFilter jwtAuthFilter,
+                                                   ObjectMapper om)
             throws Exception {
 
         http
@@ -55,15 +71,32 @@ public class SecurityConfig {
                         .authenticationEntryPoint((req, res, e) -> {
                             res.setStatus(401);
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            om.writeValue(res.getWriter(), ApiResponse.fail(ErrorCode.UNAUTHORIZED, "인증이 필요합니다."));
+                            om.writeValue(res.getWriter(), new ErrorResponse(
+                                    java.time.Instant.now().toString(),
+                                    req.getRequestURI(),
+                                    401,
+                                    ErrorCode.UNAUTHORIZED.name(),
+                                    "인증이 필요합니다.",
+                                    null
+                            ));
                         })
                         .accessDeniedHandler((req, res, e) -> {
                             res.setStatus(403);
                             res.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            om.writeValue(res.getWriter(), ApiResponse.fail(ErrorCode.FORBIDDEN, "권한이 없습니다."));
+                            om.writeValue(res.getWriter(), new ErrorResponse(
+                                    java.time.Instant.now().toString(),
+                                    req.getRequestURI(),
+                                    403,
+                                    ErrorCode.FORBIDDEN.name(),
+                                    "권한이 없습니다.",
+                                    null
+                            ));
                         })
                 );
 
+        // request -> logging -> rate limit -> jwt auth -> controller
+        http.addFilterBefore(requestLoggingFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

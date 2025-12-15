@@ -209,6 +209,7 @@ CREATE TABLE orders (
   status ENUM('pending','paid','shipped','delivered','cancelled','refunded') NOT NULL,
   total_amount_cents INT NOT NULL,
   created_at TIMESTAMP(6) NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updated_at TIMESTAMP(6) NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   INDEX idx_orders_user_created (user_id, created_at),
   CONSTRAINT fk_orders_user FOREIGN KEY (user_id)
     REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,

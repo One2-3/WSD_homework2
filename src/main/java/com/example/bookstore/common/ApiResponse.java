@@ -26,6 +26,21 @@ public record ApiResponse<T>(
         return new ApiResponse<>(true, message, payload, meta, null);
     }
 
+
+// ---- alias for assignment spec / legacy controllers ----
+public static ApiResponse<Void> success(String message) {
+    return ok(message);
+}
+
+public static <T> ApiResponse<T> success(String message, T payload) {
+    return ok(message, payload);
+}
+
+public static <T> ApiResponse<T> success(String message, T payload, ApiMeta meta) {
+    return ok(message, payload, meta);
+}
+
+
     public static ApiResponse<Void> fail(ErrorCode code, String message) {
         return new ApiResponse<>(false, message, null, null, new ApiError(code.name(), null));
     }

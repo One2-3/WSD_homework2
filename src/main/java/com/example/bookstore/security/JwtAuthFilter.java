@@ -1,7 +1,8 @@
 package com.example.bookstore.security;
 
-import com.example.bookstore.common.ApiResponse;
+import com.example.bookstore.common.ApiException;
 import com.example.bookstore.common.ErrorCode;
+import com.example.bookstore.common.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,8 +15,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
+/**
+ * Authorization: Bearer <accessToken> 인증 필터.
+ * - 실패 시 과제 요구사항의 ErrorResponse 포맷으로 통일하여 반환한다.
+ */
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
@@ -39,16 +45,37 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + principal.role().name().toUpperCase()));
                 var authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (ApiException e) {
+                // TOKEN_EXPIRED / TOKEN_INVALID 등 세부 코드를 유지
+                SecurityContextHolder.clearContext();
+                writeError(response, request, e.code(), e.getMessage(), e.details());
+                return;
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                objectMapper.writeValue(response.getWriter(),
-                        ApiResponse.fail(ErrorCode.UNAUTHORIZED, "인증이 필요합니다."));
+                writeError(response, request, ErrorCode.UNAUTHORIZED, "인증이 필요합니다.", null);
                 return;
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void writeError(HttpServletResponse response,
+                            HttpServletRequest request,
+                            ErrorCode code,
+                            String message,
+                            Object details) throws IOException {
+
+        int status = code.status().value();
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        objectMapper.writeValue(response.getWriter(), new ErrorResponse(
+                Instant.now().toString(),
+                request.getRequestURI(),
+                status,
+                code.name(),
+                message,
+                details
+        ));
     }
 }
